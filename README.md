@@ -39,7 +39,7 @@ const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule,
 	// The config is the same as the KafkaOptions from the @nestjs/microservices package
 	strategy: new KafkaBatchServer({
 		client: {
-          brokers: ['localhost:52800', 'localhost:52801'],
+			brokers: ['localhost:52800', 'localhost:52801'],
         },
         consumer: {
           groupId: 'test',
@@ -81,7 +81,7 @@ Then you can start consuming the events in batches as follow
 
 ### Context
 
-The `KafkaBatchContext` object provides the necessary the components from `kafkajs`'s  [`EachBatchPayload`](https://kafka.js.org/docs/consuming#a-name-each-batch-a-eachbatch):
+The `KafkaBatchContext` object provides the necessary components from `kafkajs`'s  [`EachBatchPayload`](https://kafka.js.org/docs/consuming#a-name-each-batch-a-eachbatch):
 
 <table>
 	<tr>
@@ -144,9 +144,8 @@ The `KafkaBatchClient` is exactly the same as the `KafkaClient` from the `@nestj
 ```typescript
 @Module({
 	imports: [
-		ClientsModule.register([
-			{
-				// the config is the same as the KafkaOptions from the @nestjs/microservices package
+		ClientsModule.register([{
+			// the config is the same as the KafkaOptions from the @nestjs/microservices package
 			name: 'KAFKA_BATCH_CLIENT',
 			// as any here to avoid invalid ts error
 			customClass: KafkaBatchClient as any,
@@ -160,8 +159,7 @@ The `KafkaBatchClient` is exactly the same as the `KafkaClient` from the `@nestj
 				sessionTimeout: 30000,
 				},
 			},
-			},
-		]),
+		}]),
 	],
 })
 export class AppModule {}
