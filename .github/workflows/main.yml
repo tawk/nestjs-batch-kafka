@@ -19,6 +19,7 @@ jobs:
           node-version: 20
           cache: 'yarn'
           registry-url: 'https://registry.npmjs.org'
+          scope: '@tawk.to'
 
       - name: Install dependencies
         run: yarn
