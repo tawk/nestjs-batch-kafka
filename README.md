@@ -24,50 +24,165 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Process Kafka message by batch in NestJS
 
 ## Installation
 
 ```bash
-$ pnpm install
+$ npm i --save @tawkto/nestjs-batch-kafka
 ```
 
-## Running the app
+## Overview
+To use the batch kafka consumer, initialize `BatchKafkaServer` in your `main.ts` file by connecting the microservice to your app.
+```typescript
+const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
+	// The config is the same as the KafkaOptions from the @nestjs/microservices package
+	strategy: new KafkaBatchServer({
+		client: {
+          brokers: ['localhost:52800', 'localhost:52801'],
+        },
+        consumer: {
+          groupId: 'test',
+          heartbeatInterval: 5000,
+          sessionTimeout: 30000,
+        },
+        run: {
+          autoCommitInterval: 5000,
+          autoCommitThreshold: 100,
+          partitionsConsumedConcurrently: 4,
+        },
+	})
+})
+```
+Then you can start consuming the events in batches as follow
+```typescript
+@BatchProcessor('test')
+  async test(
+    @Payload() data: any[],
+    @Ctx() context: KafkaBatchContext,
+  ) {
+    const heartbeat = context.getHeartbeat();
+    const resolveOffset = context.getResolveOffset();
+    const commitOffsetsIfNecessary = context.getCommitOffsetsIfNecessary();
 
-```bash
-# development
-$ pnpm run start
+    await heartbeat();
 
-# watch mode
-$ pnpm run start:dev
+    for (const message of data) {
+      console.log(message);
+    }
 
-# production mode
-$ pnpm run start:prod
+    resolveOffset(context.getMessages().at(-1).offset);
+    console.log("Batch resolved");
+
+    await heartbeat();
+    await commitOffsetsIfNecessary();
+  }
 ```
 
-## Test
+### Context
 
-```bash
-# unit tests
-$ pnpm run test
+The `KafkaBatchContext` object provides the necessary the components from `kafkajs`'s  [`EachBatchPayload`](https://kafka.js.org/docs/consuming#a-name-each-batch-a-eachbatch):
 
-# e2e tests
-$ pnpm run test:e2e
+<table>
+	<tr>
+		<th>Method</td>
+		<th>Type</th>
+		<th>Description</td>
+	</tr>
+	<tr>
+		<td><code>getMessages</code></td>
+		<td><code>KafkaMessage[]</code></td>
+		<td>Get the raw messages from Kafka in the batch</td>
+	</tr>
+	<tr>
+		<td><code>getConsumer</code></td>
+		<td><code>KafkaConsumer</code></td>
+		<td>Get the consumer instance</td>
+	</tr>
+	<tr>
+		<td><code>getResolveOffset</code></td>
+		<td><code>function</code></td>
+		<td>Get the resolve offset method</td>
+	</tr>
+	<tr>
+		<td><code>getHeartbeat</code></td>
+		<td><code>function</code></td>
+		<td>Get the heartbeat method</td>
+	</tr>
+	<tr>
+		<td><code>getPause</code></td>
+		<td><code>function</code></td>
+		<td>Get the pause method</td>
+	</tr>
+	<tr>
+		<td><code>getCommitOffsetsIfNecessary</code></td>
+		<td><code>function</code></td>
+		<td>Get the commit offsets if necessary method</td>
+	</tr>
+	<tr>
+		<td><code>getUncommittedOffsets</code></td>
+		<td><code>OffsetsByTopicPartition</code></td>
+		<td>Get the uncommitted offsets</td>
+	</tr>
+	<tr>
+		<td><code>getIsRunning</code></td>
+		<td><code>boolean</code></td>
+		<td>Indicate if the consumer is still running</td>
+	</tr>
+	<tr>
+		<td><code>getIsStale</code></td>
+		<td><code>boolean</code></td>
+		<td>Indicate if the consumer is stale</td>
+	</tr>
+</table>
 
-# test coverage
-$ pnpm run test:cov
+
+### Client
+
+The `KafkaBatchClient` is exactly the same as the `KafkaClient` from the `@nestjs/microservices` package, except that `client.send` method is removed from the client as batch messages should not be used for `request-response` communication.
+
+```typescript
+@Module({
+	imports: [
+		ClientsModule.register([
+			{
+				// the config is the same as the KafkaOptions from the @nestjs/microservices package
+			name: 'KAFKA_BATCH_CLIENT',
+			// as any here to avoid invalid ts error
+			customClass: KafkaBatchClient as any,
+			options: {
+				client: {
+				brokers: ['localhost:52800', 'localhost:52801'],
+				},
+				consumer: {
+				groupId: 'test',
+				heartbeatInterval: 5000,
+				sessionTimeout: 30000,
+				},
+			},
+			},
+		]),
+	],
+})
+export class AppModule {}
 ```
 
-## Support
+Then you can inject and use the `KafkaBatchClient` in your service as follow
+```typescript
+@Injectable()
+export class AppService {
+	constructor(
+		@Inject('KAFKA_BATCH_CLIENT')
+		private kafkaClient: KafkaBatchClient,
+	) {}
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+	async eventToBatch() {
+		this.kafkaClient.emit('test', { data: 'data'});
+	}
+}
+```
 
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
+Calling `send` with the `KafkaBatchClient` will result in an error.
+```typescript
+this.kafkaClient.emit('send', { data: 'data'}); // Error
+```
