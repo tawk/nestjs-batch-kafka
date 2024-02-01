@@ -1,9 +1,11 @@
 {
   "name": "@tawk.to/nestjs-batch-kafka",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "NestJS Kafka Batch Processor",
+  "author": "tawk.to",
   "license": "MIT",
+  "main": "dist/index.js",
+  "url": "https://github.com/tawk/nestjs-batch-kafka",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -56,6 +58,10 @@
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.1.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tawk/nestjs-batch-kafka"
   },
   "jest": {
     "moduleFileExtensions": [
