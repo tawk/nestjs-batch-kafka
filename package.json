@@ -1,5 +1,5 @@
 {
-  "name": "nestjs-batch-kafka",
+  "name": "@tawk.to/nestjs-batch-kafka",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -19,16 +19,23 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
-  "dependencies": {
+  "peerDependencies": {
     "@nestjs/common": "^10.0.0",
     "@nestjs/core": "^10.0.0",
-    "@nestjs/microservices": "^10.3.1",
+    "@nestjs/microservices": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
     "kafkajs": "^2.2.4",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.0.0"
   },
   "devDependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/microservices": "^10.0.0",
+    "@nestjs/platform-express": "^10.0.0",
+    "kafkajs": "^2.2.4",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.0.0",
     "@nestjs/cli": "^10.0.0",
     "@nestjs/schematics": "^10.0.0",
     "@nestjs/testing": "^10.0.0",

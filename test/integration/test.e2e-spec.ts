@@ -15,6 +15,7 @@ describe('Integration', () => {
         ClientsModule.register([
           {
             name: 'KAFKA_BATCH_CLIENT',
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             customClass: KafkaBatchClient as any,
             options: {
               client: {
