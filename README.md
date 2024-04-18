@@ -24,7 +24,7 @@
 
 ## Description
 
-Process Kafka message by batch in NestJS
+Process and Publish Kafka message by batch in NestJS. Cross compatible with `ServerKafka` and `ClientKafka` from `@nestjs/microservices` package.
 
 ## Installation
 
@@ -139,16 +139,14 @@ The `KafkaBatchContext` object provides the necessary components from `kafkajs`'
 
 ### Client
 
-The `KafkaBatchClient` is exactly the same as the `KafkaClient` from the `@nestjs/microservices` package, except that `client.send` method is removed from the client as batch messages should not be used for `request-response` communication.
+The `KafkaBatchClient` is exactly the same as the `KafkaClient` from the `@nestjs/microservices` package, except that `client.send` method is removed from the client as batch messages should not be used for `request-response` communication. On top of that, `KafkaBatchClient` also have the capability to [publish batch messages](https://kafka.js.org/docs/producing#producing-messages) or [publish to multiple topics](https://kafka.js.org/docs/producing#producing-to-multiple-topics) just like in `kafkajs`.
 
 ```typescript
 @Module({
 	imports: [
 		ClientsModule.register([{
-			// the config is the same as the KafkaOptions from the @nestjs/microservices package
 			name: 'KAFKA_BATCH_CLIENT',
-			// as any here to avoid invalid ts error
-			customClass: KafkaBatchClient as any,
+			customClass: KafkaBatchClient,
 			options: {
 				client: {
 				brokers: ['localhost:52800', 'localhost:52801'],
@@ -175,12 +173,33 @@ export class AppService {
 	) {}
 
 	async eventToBatch() {
-		this.kafkaClient.emit('test', { data: 'data'});
+		this.kafkaClient.emit('test', { example: 'data'});
+	}
+
+	async publishBatch() {
+		// equivalent to kafkajs producer.send
+		this.kafkaClient.emitBatch('test', [{
+			example: 'data1'
+		}, {
+			example: 'data2'
+		}])
+	}
+
+	async publishBatchTopics() {
+		// will publish to two topics, topic1 and topic2
+		// equivalent to kafkajs producer.publishBatch
+		this.kafkaClient.emitBatchTopics([{
+			pattern: 'topic1',
+			data: [{ example: 'data11' }, { example: 'data12' }]
+		}, {
+			pattern: 'topic2',
+			data: [{ example: 'data21' }, { example: 'data22' }]
+		}])
 	}
 }
 ```
 
 Calling `send` with the `KafkaBatchClient` will result in an error.
 ```typescript
-this.kafkaClient.emit('send', { data: 'data'}); // Error
+this.kafkaClient.send('send', { data: 'data'}); // Error
 ```
