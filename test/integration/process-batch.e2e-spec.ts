@@ -53,11 +53,10 @@ describe('Process Batch', () => {
 							client: {
 								brokers: ['localhost:52800', 'localhost:52801'],
 							},
-							consumer: {
-								groupId: crypto.randomUUID(),
-								heartbeatInterval: 500,
-								sessionTimeout: 6000,
-							},
+							producerOnlyMode: true,
+							producer: {
+								allowAutoTopicCreation: true
+							}
 						},
 					},
 				]),
@@ -75,6 +74,7 @@ describe('Process Batch', () => {
 					groupId: crypto.randomUUID(),
 					heartbeatInterval: 200,
 					sessionTimeout: 6000,
+					allowAutoTopicCreation: true
 				},
 				run: {
 					autoCommitInterval: 500,

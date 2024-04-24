@@ -40,11 +40,10 @@ describe('Emit Batch', () => {
 							client: {
 								brokers: ['localhost:52800', 'localhost:52801'],
 							},
-							consumer: {
-								groupId: 'test',
-								heartbeatInterval: 200,
-								sessionTimeout: 6000,
-							},
+							producerOnlyMode: true,
+							producer: {
+								allowAutoTopicCreation: true
+							}
 						},
 					},
 				]),
@@ -64,6 +63,7 @@ describe('Emit Batch', () => {
 					groupId: crypto.randomUUID(),
 					heartbeatInterval: 200,
 					sessionTimeout: 6000,
+					allowAutoTopicCreation: true,
 				},
 				run: {
 					autoCommitInterval: 500,
