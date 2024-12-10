@@ -1,0 +1,1 @@
+export declare const BatchProcessor: <T = string>(event: T) => <TFunction extends Function, Y>(target: object | TFunction, propertyKey?: string | symbol, descriptor?: TypedPropertyDescriptor<Y>) => void;
