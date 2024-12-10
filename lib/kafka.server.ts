@@ -7,6 +7,7 @@ import {
 } from '@nestjs/microservices/external/kafka.interface';
 import { KafkaBatchDeserializer } from './kafka.deserializer';
 import { KafkaBatchContext } from './kafka.context';
+import { Logger } from '@nestjs/common';
 
 export interface BatchKafkaOptionsConfig
   extends Omit<KafkaOptions['options'], 'producer' | 'producerOnlyMode'> {
@@ -22,6 +23,7 @@ export type BatchConsumerRunConfig = {
 };
 
 export class KafkaBatchServer extends ServerKafka {
+  logger = new Logger(KafkaBatchServer.name);
   constructor(readonly options: BatchKafkaOptionsConfig) {
     super(options);
   }
@@ -36,7 +38,10 @@ export class KafkaBatchServer extends ServerKafka {
         topics: registeredPatterns,
       });
     }
-
+	console.log(
+		JSON.stringify(this.options.run, null, 2),
+		'CHECK: this.options.run',
+	);
     const consumerRunOptions = Object.assign(this.options.run || {}, {
       eachBatch: this.getMessageHandler(),
     });
@@ -50,6 +55,17 @@ export class KafkaBatchServer extends ServerKafka {
 
   // @ts-expect-error Different interface with parent class (EachMessagePayload vs EachBatchPayload)
   public async handleMessage(payload: EachBatchPayload) {
+	this.logger.log(
+		'[KAFKA] Batch messages received',
+		'handleMessage',
+		{
+			topicName: payload.batch.topic,
+			partition: payload.batch.partition,
+			numberOfMessages: payload.batch.messages.length,
+			firstOffset: payload.batch.firstOffset(),
+			lastOffset: payload.batch.lastOffset(),
+		}
+	)
     const channel = payload.batch.topic;
     const rawMessages = [];
     for (const message of payload.batch.messages) {
